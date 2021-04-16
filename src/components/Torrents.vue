@@ -166,7 +166,7 @@
             </td>
             <td
               :title="row.item.name"
-              class="icon-label"
+              class="icon-label td-torrent-name"
             >
               <v-icon :color="row.item.state | stateColor">
                 {{ row.item.state | stateIcon }}
@@ -174,6 +174,13 @@
               <span class="torrent-title">
                 {{ row.item.name }}
               </span>
+              <v-icon
+                class="torrent-save-path"
+                v-tooltip="{content:row.item.save_path,placement:'left'}"
+                @click="setTorrentLocation(row.item)"
+              >
+                {{ row.item.save_path | savePathIconFilter }}
+              </v-icon>
             </td>
             <td>{{ row.item.size | formatSize }}</td>
             <td>
@@ -242,6 +249,7 @@ import { DialogType, TorrentFilter, ConfigPayload, DialogConfig, SnackBarConfig 
 import Component from 'vue-class-component'
 import { Torrent, Category } from '@/types'
 import { Watch } from 'vue-property-decorator'
+import {savePathIconFilter} from '../core/savePathIconFilter'
 
 function getStateInfo(state: string) {
   let icon;
@@ -360,6 +368,7 @@ function getStateInfo(state: string) {
 
       return item.color || '#0008';
     },
+    savePathIconFilter,
   },
   methods: {
     ...mapMutations([
@@ -485,12 +494,10 @@ export default class Torrents extends Vue {
   }
 
   async reannounceTorrents() {
-    if (!this.hasSelected) {
+    if (!this.hasSelected ) {
       this.selectedRows = this.allTorrents;
     }
-
     await api.reannounceTorrents(this.selectedHashes);
-
     this.showSnackBar({text: tr('label.reannounced')});
   }
 
@@ -509,7 +516,11 @@ export default class Torrents extends Vue {
     this.showSnackBar({text: tr('label.rechecking')});
   }
 
-  async setTorrentLocation() {
+  async setTorrentLocation(item: Torrent) {
+    if(item){
+      this.selectedRows.splice(0, this.selectedRows.length)
+      this.selectedRows.push(item)
+    }
     const savePaths = uniqBy(this.selectedRows, 'save_path');
 
     const oldPath = savePaths.length > 1 ? '' : savePaths[0].save_path
@@ -649,7 +660,13 @@ export default class Torrents extends Vue {
         max-width: 32em;
       }
     }
-
+    td.td-torrent-name{
+      position:relative;
+      .torrent-save-path{
+        position: absolute;
+        right: 0;
+      }
+    }
     &::v-deep .v-data-footer {
       margin-right: 4em;
 

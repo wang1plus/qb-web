@@ -16,3 +16,13 @@
     @content($dark);
   }
 }
+
+.tooltip{
+  &.popover{
+    color: azure;
+    .popover-inner {
+      background: darkgrey;
+      color: black;
+    }
+  }
+}
